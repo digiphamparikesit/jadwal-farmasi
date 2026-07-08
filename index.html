@@ -311,7 +311,8 @@ var state = {
    ============================================================ */
 function loadSettings(){
   try{
-    var savedLegendRaw = localStorage.getItem('aps_legend');
+    localStorage.removeItem('aps_legend'); // hapus cache label lama (Tukar Shift/Sakit/Kode M)
+    var savedLegendRaw = localStorage.getItem('aps_legend_v2');
     var savedUrl = localStorage.getItem('aps_sheet_url') || '';
     var legend = JSON.parse(JSON.stringify(DEFAULT_LEGEND));
     if(savedLegendRaw){
@@ -331,7 +332,8 @@ function saveSettings(url, legend){
   localStorage.setItem('aps_sheet_url', url);
   var slim = {};
   Object.keys(legend).forEach(function(k){ slim[k] = { label: legend[k].label }; });
-  localStorage.setItem('aps_legend', JSON.stringify(slim));
+  localStorage.setItem('aps_legend_v2', JSON.stringify(slim));
+  localStorage.removeItem('aps_legend'); // bersihkan cache label lama
 }
 
 /* ============================================================
