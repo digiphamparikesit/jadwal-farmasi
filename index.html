@@ -64,6 +64,33 @@
   }
   .icon-btn:hover{background:rgba(255,255,255,.12)}
 
+  .menu-wrap{position:relative}
+  .menu-btn{
+    display:flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.25);background:transparent;
+    color:#F3F1E7;padding:0 14px;height:36px;border-radius:9px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;
+    font-weight:600;font-size:13px;
+  }
+  .menu-btn:hover{background:rgba(255,255,255,.12)}
+  .menu-btn .caret{font-size:10px;transition:transform .15s}
+  .menu-wrap.open .menu-btn .caret{transform:rotate(180deg)}
+  .menu-dropdown{
+    position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;box-shadow:0 16px 40px rgba(20,24,21,.22);min-width:250px;padding:6px;
+    display:none;z-index:60;
+  }
+  .menu-wrap.open .menu-dropdown{display:block}
+  .menu-item{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;text-decoration:none;
+    color:var(--ink);font-size:13.5px;font-weight:500;
+  }
+  .menu-item:hover{background:var(--paper)}
+  .menu-item .m-ico{
+    width:30px;height:30px;border-radius:8px;background:#EEF0EA;color:var(--apotek-deep);flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:14px;
+  }
+  .menu-item .m-txt small{display:block;color:var(--ink-soft);font-size:11px;font-weight:400;margin-top:1px}
+  .menu-divider{height:1px;background:var(--line);margin:6px 4px}
+
   .banner{
     background:#FBE7C6;color:#7A4E12;font-size:13px;padding:9px 20px;
     display:flex;gap:8px;align-items:center;border-bottom:1px solid #EBCB92;
@@ -198,6 +225,27 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="rekap">Rekap Jadwal</button>
     <button class="tab-btn" data-tab="jadwal">Jadwal Lengkap</button>
+  </div>
+  <div class="menu-wrap" id="formMenuWrap">
+    <button class="menu-btn" id="formMenuBtn">Form &amp; Dokumen <span class="caret">▾</span></button>
+    <div class="menu-dropdown">
+      <a class="menu-item" href="https://tally.so/r/OD77J7" target="_blank" rel="noopener">
+        <span class="m-ico">🩺</span><span class="m-txt">Form Izin / Sakit<small>Isi form pengajuan izin atau sakit</small></span>
+      </a>
+      <a class="menu-item" href="https://tally.so/r/Xx444P" target="_blank" rel="noopener">
+        <span class="m-ico">🔁</span><span class="m-txt">Form Tukar Shift<small>Ajukan pertukaran jadwal shift</small></span>
+      </a>
+      <a class="menu-item" href="https://forms.gle/z8sZbGMC41MWFP7m7" target="_blank" rel="noopener">
+        <span class="m-ico">🌴</span><span class="m-txt">Form Cuti Tahunan / Meninggal Tugas<small>Pengajuan cuti tahunan</small></span>
+      </a>
+      <a class="menu-item" href="https://tally.so/r/ob22Bx" target="_blank" rel="noopener">
+        <span class="m-ico">⚠️</span><span class="m-txt">Form Presensi Error<small>Laporkan kendala presensi</small></span>
+      </a>
+      <div class="menu-divider"></div>
+      <a class="menu-item" href="https://drive.google.com/drive/folders/19AE5oKWY22xd6xMsDcTKuiFTs_p7VBES?usp=sharing" target="_blank" rel="noopener">
+        <span class="m-ico">📁</span><span class="m-txt">Regulasi Farmasi<small>Dokumen & regulasi di Google Drive</small></span>
+      </a>
+    </div>
   </div>
   <button class="icon-btn" id="refreshBtn" title="Muat ulang data">⟳</button>
   <button class="icon-btn" id="settingsBtn" title="Pengaturan">⚙</button>
@@ -618,6 +666,15 @@ document.getElementById('settingsBtn').addEventListener('click', openModal);
 document.getElementById('openSettingsFromBanner').addEventListener('click', openModal);
 document.getElementById('closeModal').addEventListener('click', closeModal);
 document.getElementById('modalBg').addEventListener('click', function(e){ if(e.target === this) closeModal(); });
+
+document.getElementById('formMenuBtn').addEventListener('click', function(e){
+  e.stopPropagation();
+  document.getElementById('formMenuWrap').classList.toggle('open');
+});
+document.addEventListener('click', function(e){
+  var wrap = document.getElementById('formMenuWrap');
+  if(!wrap.contains(e.target)) wrap.classList.remove('open');
+});
 
 document.getElementById('refreshBtn').addEventListener('click', loadData);
 
