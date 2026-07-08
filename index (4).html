@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jadwal Instalasi Farmasi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F5F0;
+    --ink:#1E2420;
+    --ink-soft:#5B6660;
+    --line:#DCD9CE;
+    --apotek:#2F6F5E;
+    --apotek-deep:#1F4D40;
+    --amber:#D98E3F;
+    --card:#FFFFFF;
+    --shadow:0 1px 2px rgba(30,36,32,.06), 0 8px 24px -12px rgba(30,36,32,.18);
+
+    --c-P:#2F6F5E;
+    --c-TS:#3E6FB0;
+    --c-S:#D9762F;
+    --c-M:#8A8465;
+    --c-L:#9AA39B;
+    --c-CT:#7C5CBF;
+    --c-CM:#C4589C;
+    --c-SKT:#C23B3B;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0}
+
+  /* ---------- top bar ---------- */
+  header.topbar{
+    position:sticky;top:0;z-index:40;
+    background:var(--apotek-deep);
+    color:#F3F1E7;
+    padding:14px 20px;
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    box-shadow:var(--shadow);
+  }
+  .brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+  .brand .mark{
+    width:34px;height:34px;border-radius:8px;background:var(--amber);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-weight:700;color:var(--apotek-deep);font-size:17px;
+  }
+  .brand h1{font-size:17px;font-weight:600;letter-spacing:.2px}
+  .brand span.sub{display:block;font-size:11px;color:#C9C2AA;font-weight:400;font-family:'IBM Plex Sans',sans-serif;margin-top:1px}
+
+  .tabs{display:flex;gap:4px;background:rgba(255,255,255,.08);padding:4px;border-radius:10px}
+  .tab-btn{
+    border:none;background:transparent;color:#E7E3D3;padding:8px 16px;border-radius:7px;
+    font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13.5px;cursor:pointer;
+    transition:background .15s, color .15s;
+  }
+  .tab-btn.active{background:var(--amber);color:var(--apotek-deep)}
+  .icon-btn{
+    border:1px solid rgba(255,255,255,.25);background:transparent;color:#F3F1E7;
+    width:36px;height:36px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    font-size:16px;
+  }
+  .icon-btn:hover{background:rgba(255,255,255,.12)}
+
+  .banner{
+    background:#FBE7C6;color:#7A4E12;font-size:13px;padding:9px 20px;
+    display:flex;gap:8px;align-items:center;border-bottom:1px solid #EBCB92;
+  }
+  .banner b{font-weight:600}
+  .banner a{color:#7A4E12;text-decoration:underline;cursor:pointer;font-weight:600}
+
+  main{max-width:1180px;margin:0 auto;padding:24px 20px 60px}
+
+  /* ---------- Rekap tab ---------- */
+  .rekap-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:18px}
+  .rekap-head h2{font-size:26px;color:var(--apotek-deep)}
+  .rekap-head p.eyebrow{margin:0 0 4px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+  .date-picker{
+    display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;padding:8px 12px;box-shadow:var(--shadow);
+  }
+  .date-picker input[type=date]{border:none;font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--ink);background:transparent}
+  .date-picker button{border:none;background:var(--paper);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:13px;color:var(--apotek-deep)}
+
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .stat-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+  .stat-card .num{font-family:'Fraunces',serif;font-size:28px;color:var(--apotek-deep);font-weight:600;line-height:1}
+  .stat-card .lbl{font-size:12px;color:var(--ink-soft);margin-top:4px}
+
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}
+  .chip{
+    display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:5px 12px 5px 8px;font-size:12.5px;font-weight:500;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .chip b{font-family:'IBM Plex Mono',monospace}
+
+  .room-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+  .room-card{background:var(--card);border:1px solid var(--line);border-radius:4px 4px 12px 12px;box-shadow:var(--shadow);overflow:hidden}
+  .room-tag{
+    position:relative;background:var(--apotek);color:#F3F1E7;padding:10px 16px 10px 16px;
+    font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+    display:flex;justify-content:space-between;align-items:center;
+    clip-path:polygon(0 0,100% 0,100% 100%,14px 100%,0 calc(100% - 14px));
+  }
+  .room-tag .count{background:rgba(255,255,255,.18);border-radius:999px;padding:2px 9px;font-size:11px}
+  .room-body{padding:14px 16px 16px}
+  .room-body .empty{color:var(--ink-soft);font-size:13px;font-style:italic;padding:6px 0}
+  .staff-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+  .staff-row{display:flex;align-items:center;gap:10px}
+  .avatar{
+    width:28px;height:28px;border-radius:50%;background:var(--apotek);color:#fff;flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;
+  }
+  .staff-name{font-size:13.5px;font-weight:500;line-height:1.25}
+  .staff-status{font-size:11px;color:var(--ink-soft)}
+  .off-tally{display:flex;flex-wrap:wrap;gap:6px;border-top:1px dashed var(--line);padding-top:10px}
+  .off-pill{
+    font-size:11px;font-family:'IBM Plex Mono',monospace;padding:3px 8px;border-radius:6px;color:#fff;font-weight:600;
+  }
+
+  /* ---------- Jadwal tab ---------- */
+  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .filters input, .filters select{
+    border:1px solid var(--line);background:var(--card);border-radius:8px;padding:9px 12px;font-size:13.5px;
+    font-family:'IBM Plex Sans',sans-serif;color:var(--ink);
+  }
+  .filters input{min-width:200px}
+  .table-wrap{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:auto;max-height:70vh}
+  table{border-collapse:collapse;width:100%;font-size:12.5px}
+  thead th{
+    position:sticky;top:0;background:var(--apotek-deep);color:#F3F1E7;z-index:5;
+    font-family:'IBM Plex Mono',monospace;font-weight:600;padding:9px 8px;text-align:center;white-space:nowrap;
+    border-right:1px solid rgba(255,255,255,.08);
+  }
+  thead th:first-child{left:0;z-index:7;text-align:left;min-width:200px}
+  thead th:nth-child(2){left:200px;z-index:7;min-width:120px}
+  tbody td{padding:7px 8px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+  tbody td:first-child, tbody td:nth-child(2){
+    position:sticky;background:var(--card);text-align:left;font-weight:500;z-index:2;
+  }
+  tbody td:first-child{left:0;min-width:200px}
+  tbody td:nth-child(2){left:200px;min-width:120px;color:var(--ink-soft);font-weight:400}
+  tbody tr:hover td{background:#F0EEE4}
+  tbody tr:hover td:first-child, tbody tr:hover td:nth-child(2){background:#EDEAdd}
+  .code-cell{
+    display:inline-block;min-width:30px;padding:2px 6px;border-radius:5px;color:#fff;font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  }
+  .code-empty{color:var(--line)}
+
+  footer.credit{max-width:1180px;margin:30px auto 0;padding:0 20px;font-size:11.5px;color:var(--ink-soft)}
+
+  /* ---------- modal ---------- */
+  .modal-bg{position:fixed;inset:0;background:rgba(20,24,21,.5);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--card);border-radius:14px;max-width:520px;width:100%;max-height:85vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .modal-head h3{font-size:18px;color:var(--apotek-deep)}
+  .modal-body{padding:18px 22px}
+  .modal-body label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.05em}
+  .modal-body input[type=url], .modal-body input[type=text]{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;font-family:'IBM Plex Mono',monospace;
+  }
+  .legend-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .legend-row .dot{width:14px;height:14px;border-radius:4px}
+  .legend-row .code-name{font-family:'IBM Plex Mono',monospace;font-size:12px;width:36px;font-weight:700;color:var(--ink-soft)}
+  .legend-row input{flex:1;padding:6px 9px;border:1px solid var(--line);border-radius:6px;font-size:12.5px}
+  .btn{
+    border:none;border-radius:8px;padding:10px 16px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;
+  }
+  .btn-primary{background:var(--apotek);color:#fff}
+  .btn-ghost{background:var(--paper);color:var(--ink)}
+  .modal-foot{padding:16px 22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+  .help-text{font-size:12px;color:var(--ink-soft);line-height:1.5;margin-top:4px}
+
+  @media (max-width:640px){
+    .stat-row{grid-template-columns:repeat(2,1fr)}
+    thead th:first-child, tbody td:first-child{min-width:150px}
+    thead th:nth-child(2), tbody td:nth-child(2){left:150px;min-width:90px}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="mark">Rx</div>
+    <div>
+      <h1>Jadwal Instalasi Farmasi</h1>
+      <span class="sub">Sumber data: Google Sheets</span>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="rekap">Rekap Jadwal</button>
+    <button class="tab-btn" data-tab="jadwal">Jadwal Lengkap</button>
+  </div>
+  <button class="icon-btn" id="refreshBtn" title="Muat ulang data">⟳</button>
+  <button class="icon-btn" id="settingsBtn" title="Pengaturan">⚙</button>
+</header>
+
+<div class="banner" id="demoBanner" style="display:none">
+  <span>🔧</span>
+  <span><b>Mode contoh</b> — halaman ini masih menampilkan data contoh dari file yang diunggah. <a id="openSettingsFromBanner">Hubungkan ke Google Sheets Anda →</a></span>
+</div>
+
+<main>
+
+  <!-- ===================== REKAP TAB ===================== -->
+  <section id="tab-rekap">
+    <div class="rekap-head">
+      <div>
+        <p class="eyebrow">Siapa bertugas hari ini</p>
+        <h2>Rekap per Ruangan</h2>
+      </div>
+      <div class="date-picker">
+        <button id="prevDay">‹</button>
+        <input type="date" id="dateInput">
+        <button id="nextDay">›</button>
+      </div>
+    </div>
+
+    <div class="stat-row" id="statRow"></div>
+    <div class="chip-row" id="chipRow"></div>
+    <div class="room-grid" id="roomGrid"></div>
+  </section>
+
+  <!-- ===================== JADWAL TAB ===================== -->
+  <section id="tab-jadwal" style="display:none">
+    <div class="rekap-head">
+      <div>
+        <p class="eyebrow">Data mentah</p>
+        <h2>Jadwal Bulan Berjalan</h2>
+      </div>
+    </div>
+    <div class="filters">
+      <input type="text" id="searchName" placeholder="Cari nama staf…">
+      <select id="filterRuangan"><option value="">Semua ruangan</option></select>
+      <select id="filterStatus"><option value="">Semua status kepegawaian</option></select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="tableHeadRow"></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="credit mono" id="updatedInfo"></footer>
+
+<!-- ===================== SETTINGS MODAL ===================== -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Pengaturan</h3>
+      <button class="icon-btn" id="closeModal" style="border-color:var(--line);color:var(--ink)">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>URL Web App Google Sheets</label>
+      <input type="url" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/…/exec">
+      <p class="help-text">Dapatkan URL ini dari Google Apps Script (Deploy → New deployment → Web app). Panduan lengkap ada di file PANDUAN_SETUP.md yang disertakan.</p>
+
+      <label>Label Kode Jadwal</label>
+      <div id="legendEditor"></div>
+      <p class="help-text">Sesuaikan label tiap kode dengan istilah yang dipakai di tempat Anda. Kode <b>P</b> dianggap "bertugas" dan dipakai untuk mengisi rekap per ruangan; kode lain dihitung sebagai tidak bertugas.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="resetDemo">Pakai data contoh</button>
+      <button class="btn btn-primary" id="saveSettings">Simpan & Muat Ulang</button>
+    </div>
+  </div>
+</div>
+
+<script id="demo-data" type="application/json">{"dates": ["2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-13", "2026-06-14", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-19", "2026-06-20", "2026-06-21", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-27", "2026-06-28", "2026-06-29", "2026-06-30"], "employees": [{"name": "Aji Yuhda Wijaya,S.Farm.Apt", "status": "PPPK", "ruangan": "CENDERAWASIH", "codes": ["L", "P", "P", "P", "P", "P", "L", "P", "P", "P", "P", "P", "L", "L", "P", "L", "P", "P", "P", "P", "L", "P", "P", "P", "P", "P", "P", "L", "P", "P"]}, {"name": "Dian Adrian", "status": "PPPK", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "TS", "P", "L", "L", "P", "TS", "P", "P", "P", "L", "L", "P", "L", "TS", "P", "P", "P", "L", "TS", "P", "P", "P", "P", "L", "L", "TS", "P"]}, {"name": "Eka Fitriani Purwanti", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["L", "P", "TS", "P", "P", "L", "L", "P", "P", "P", "TS", "P", "L", "L", "P", "L", "P", "P", "TS", "L", "L", "P", "P", "P", "P", "P", "P", "L", "P", "P"]}, {"name": "Mayang Azhari", "status": "Transporter", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "P", "TS", "L", "L", "P", "P", "P", "P", "TS", "P", "L", "TS", "L", "P", "P", "P", "L", "L", "P", "P", "P", "TS", "P", "L", "L", "P", "TS"]}, {"name": "Muhammad Junaidi", "status": "PPPK", "ruangan": "FARM TERPADU", "codes": ["P", "P", "P", "TS", "P", "L", "L", "P", "TS", "P", "P", "P", "P", "L", "P", "L", "P", "TS", "P", "L", "L", "P", "P", "TS", "P", "P", "L", "L", "P", "P"]}, {"name": "Tini", "status": "PPPK", "ruangan": "FARM TERPADU", "codes": ["L", "TS", "P", "P", "P", "P", "L", "P", "P", "TS", "P", "P", "L", "L", "P", "L", "P", "TS", "P", "L", "L", "P", "TS", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Apt. Hamziah Filza Fauziah, S.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "P", "P", "P", "L", "P", "P", "P", "P", "P", "L", "P", "S", "L", "P", "P", "P", "P", "L", "P", "P", "P", "P", "S", "L", "L", "P", "P"]}, {"name": "Apt.Chica Dwi Cahya,S.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "P", "P", "P", "L", "P", "P", "S", "TS", "P", "L", "P", "P", "L", "P", "S", "TS", "L", "P", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Apt.Halimatusya'diah,S.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM", "CM"]}, {"name": "Apt.Rina Safitri,S.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["P", "S", "TS", "P", "L", "L", "P", "S", "TS", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "S", "L", "TS", "P", "P", "P", "P", "P", "L", "S", "L"]}, {"name": "Dwi Juwita Ningsih,S.Farm,Apt", "status": "PPPK", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "L", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Framita Sari,S.farm.Apt", "status": "PPPK", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "P", "L", "P", "L", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Liani Meyanti, S.farm.Apt", "status": "PPPK", "ruangan": "FARM TERPADU", "codes": ["S", "TS", "S", "TS", "P", "S", "L", "TS", "S", "TS", "L", "TS", "S", "L", "TS", "P", "S", "TS", "P", "L", "L", "S", "TS", "TS", "S", "TS", "P", "L", "P", "S"]}, {"name": "Apt. Rulina Citra, S.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "P", "L", "P", "L", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "P", "L", "P", "P"]}, {"name": "Apt. Ngesti Mayang Pramandayanti, S.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "P", "S", "L", "L", "P", "P", "P", "P", "P", "P", "L", "P", "L", "P", "P", "P", "P", "L", "P", "P", "S", "TS", "P", "L", "P", "TS", "P"]}, {"name": "Apt. Emilia Pratiwi, S.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["P", "P", "P", "S", "TS", "L", "P", "P", "P", "P", "S", "S", "L", "L", "P", "S", "TS", "P", "S", "L", "P", "P", "S", "L", "P", "P", "L", "P", "P", "TS"]}, {"name": "Andrilidiani,Amd.far", "status": "PPPK", "ruangan": "FARM TERPADU", "codes": ["P", "S", "L", "P", "TS", "P", "L", "P", "P", "P", "P", "S", "L", "L", "P", "P", "P", "S", "TS", "P", "L", "P", "P", "P", "P", "P", "L", "S", "S", "L"]}, {"name": "Dani Abdul Muttaqin, A.Md.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "P", "P", "S", "L", "S", "TS", "S", "L", "P", "S", "L", "P", "P", "S", "TS", "S", "L", "P", "P", "P", "L", "P", "P", "S", "L", "P", "P"]}, {"name": "Eko Hadi Noersyamsih,A.Md.FAr", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["S", "TS", "P", "S", "L", "L", "S", "TS", "P", "P", "P", "L", "P", "P", "S", "L", "P", "P", "P", "S", "L", "P", "P", "S", "TS", "P", "S", "L", "S", "L"]}, {"name": "Ita Addawiyati,Amd.far", "status": "PNS", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "P", "L", "P", "L", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Mila Al Jufri, A.Md.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "P", "S", "L", "P", "P", "P", "P", "S", "L", "P", "S", "TS", "S", "L", "P", "P", "P", "S", "TS", "S", "L", "P", "P", "P", "L", "L", "P"]}, {"name": "Mila Ulfah Farista,Amd.far", "status": "PPPK", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "P", "P", "P", "L", "P", "P", "P", "P", "P", "L", "S", "TS", "P", "P", "P", "S", "L", "L", "P", "S", "TS", "P", "L", "L", "P", "P", "S"]}, {"name": "Nabila Safitri, A.Md.Farm", "status": "PPPK", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "P", "P", "S", "L", "P", "S", "TS", "P", "P", "S", "L", "P", "S", "TS", "P", "L", "P", "P", "S", "L", "P", "P", "S", "L", "L", "P", "P"]}, {"name": "Nurma Safitri, A.Md.Far", "status": "PPPK", "ruangan": "FARM TERPADU", "codes": ["P", "P", "P", "TS", "S", "L", "L", "P", "P", "S", "TS", "P", "L", "P", "P", "L", "P", "P", "P", "P", "L", "P", "P", "P", "L", "P", "P", "L", "P", "P"]}, {"name": "Putri Apriliana Maharani, A.Md.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["L", "S", "S", "L", "P", "L", "S", "TS", "P", "P", "P", "S", "L", "L", "P", "S", "TS", "P", "P", "S", "L", "P", "P", "P", "P", "S", "L", "P", "P", "P"]}, {"name": "Vivi Elvira, S.Farm", "status": "PPPK-pw", "ruangan": "FARM TERPADU", "codes": ["L", "P", "L", "P", "L", "L", "L", "P", "L", "L", "P", "L", "P", "L", "P", "L", "P", "L", "P", "L", "L", "P", "L", "L", "P", "P", "L", "L", "P", "L"]}, {"name": "Henny Puspita Wati, Amd. Far", "status": "PPPK-pw", "ruangan": "FARM TERPADU", "codes": ["L", "P", "S", "L", "L", "L", "P", "S", "L", "L", "P", "TS", "L", "L", "S", "L", "S", "S", "L", "P", "L", "L", "L", "P", "L", "L", "L", "P", "L", "P"]}, {"name": "Rizka Oktaviani, A.Md.Farm", "status": "PPPK-pw", "ruangan": "FARM TERPADU", "codes": ["S", "TS", "P", "P", "P", "P", "L", "P", "S", "TS", "L", "P", "P", "P", "S", "L", "P", "L", "S", "L", "L", "S", "TS", "P", "S", "TS", "P", "L", "P", "P"]}, {"name": "Asanah, A.Md.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["L", "S", "TS", "S", "TS", "S", "L", "P", "P", "P", "L", "P", "P", "S", "L", "L", "S", "TS", "P", "L", "P", "P", "P", "S", "S", "L", "P", "S", "TS", "S"]}, {"name": "Adelia Nor Ramadhini, A.Md.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["S", "L", "TS", "P", "P", "P", "P", "S", "L", "L", "P", "P", "P", "L", "P", "P", "P", "P", "P", "L", "S", "S", "TS", "TS", "L", "P", "P", "S", "S", "L"]}, {"name": "Nur Assyifa Jamiati, A.Md.Farm", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["P", "P", "L", "TS", "P", "P", "S", "L", "TS", "P", "S", "TS", "S", "L", "P", "P", "P", "L", "P", "S", "S", "L", "P", "P", "P", "P", "S", "L", "P", "TS"]}, {"name": "Viona Riska Dwi Lestari", "status": "BLUD", "ruangan": "FARM TERPADU", "codes": ["L", "P", "P", "P", "P", "P", "L", "TS", "P", "P", "P", "P", "L", "L", "P", "L", "P", "P", "P", "L", "L", "P", "P", "TS", "P", "P", "L", "L", "P", "P"]}, {"name": "Muhammad Irsandi Oktavianur", "status": "BLUD", "ruangan": "GD.FARMASI", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Arjudin", "status": "PNS", "ruangan": "GD.FARMASI", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Yudistira Ang Jaya", "status": "PNS", "ruangan": "GD.FARMASI", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Fitriani", "status": "PNS", "ruangan": "GD.FARMASI", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Sugeng Sirojuddin", "status": "PPPK", "ruangan": "GD.FARMASI", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Indra Fathur Firmansyah, S.Farm", "status": "PPPK", "ruangan": "GD.FARMASI", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Ristianti Aprisia P,S.Farm.Apt", "status": "PNS", "ruangan": "GD.FARMASI", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Helen Tapilouw,S.Si.Apt", "status": "PNS", "ruangan": "GD.FARMASI", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Hira Nur Silmi, S.Farm, Apt", "status": "PPPK", "ruangan": "GD.FARMASI", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Hj.Fenny Heryani,Amd.far", "status": "PNS", "ruangan": "GD.FARMASI", "codes": ["SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT", "SKT"]}, {"name": "Dinah Retno Endah.A.Md.Farm", "status": "PNS", "ruangan": "GD.FARMASI", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Susiyanto Pangestu, Amd.Far", "status": "PPPK", "ruangan": "GD.FARMASI", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Elly Suzanawati,A.Md.An", "status": "THL", "ruangan": "GD.FARMASI", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Febrianto,A.Md.Far", "status": "BLUD", "ruangan": "IBS", "codes": ["P", "M", "M", "L", "L", "S", "TS", "P", "TS", "M", "M", "L", "L", "S", "P", "TS", "S", "TS", "S", "L", "L", "P", "TS", "S", "TS", "M", "L", "P", "S", "S"]}, {"name": "Supiatun Nissa,Amd.Far", "status": "PPPK", "ruangan": "IBS", "codes": ["TS", "P", "S", "M", "M", "L", "L", "TS", "P", "S", "TS", "P", "M", "L", "L", "P", "P", "S", "P", "M", "M", "L", "L", "P", "P", "S", "M", "L", "P", "P"]}, {"name": "Desi Ana Susanti,Amd.Farm", "status": "PPPK", "ruangan": "IBS", "codes": ["L", "S", "TS", "P", "S", "M", "M", "L", "L", "P", "S", "S", "S", "M", "M", "L", "L", "P", "TS", "P", "S", "M", "M", "L", "L", "TS", "S", "M", "M", "L"]}, {"name": "Risma Saputri,A.Md.Farm", "status": "BLUD", "ruangan": "IBS", "codes": ["M", "L", "L", "S", "P", "P", "S", "M", "M", "L", "L", "TS", "P", "P", "S", "M", "M", "L", "L", "S", "P", "TS", "P", "M", "L", "P", "P", "S", "S", "TS"]}, {"name": "Siti Nurjanah,Amd.far", "status": "PPPK", "ruangan": "IBS", "codes": ["S", "S", "P", "TS", "TS", "L", "P", "S", "S", "TS", "P", "M", "L", "L", "P", "S", "TS", "M", "M", "L", "L", "S", "S", "TS", "M", "L", "L", "TS", "P", "M"]}, {"name": "Apt. Yunisca Febrianty, S.Farm", "status": "BLUD", "ruangan": "IGD", "codes": ["L", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "L", "P", "P", "P", "P", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Ria Novita Sari, A.Md.Farm", "status": "PPPK-pw", "ruangan": "IGD", "codes": ["S", "S", "M", "M", "L", "L", "S", "S", "P", "P", "S", "M", "L", "L", "S", "P", "S", "M", "M", "L", "L", "S", "P", "P", "S", "M", "L", "P", "P", "M"]}, {"name": "Zahratun Nisa,A.Md.Far", "status": "BLUD", "ruangan": "IGD", "codes": ["M", "M", "L", "L", "P", "P", "S", "S", "M", "M", "L", "L", "S", "P", "P", "M", "L", "S", "P", "P", "S", "M", "M", "L", "L", "S", "S", "M", "M", "L"]}, {"name": "Ani Eka Indriyani,Amd.Farm", "status": "PPPK-pw", "ruangan": "IGD", "codes": ["P", "S", "S", "M", "M", "L", "L", "P", "S", "S", "S", "M", "L", "L", "S", "P", "S", "S", "M", "L", "P", "P", "S", "P", "M", "M", "L", "L", "P", "S"]}, {"name": "Sri Utami,Amd.far", "status": "THL", "ruangan": "IGD", "codes": ["L", "P", "P", "P", "S", "M", "M", "L", "L", "P", "S", "S", "P", "M", "M", "L", "L", "P", "P", "M", "M", "L", "L", "S", "P", "P", "P", "S", "M", "L"]}, {"name": "Imroatul Widya Ningrat,A.Md.Far", "status": "BLUD", "ruangan": "IGD", "codes": ["L", "P", "P", "S", "M", "M", "L", "L", "S", "S", "P", "P", "M", "L", "S", "S", "P", "P", "S", "M", "L", "L", "S", "S", "P", "S", "M", "L", "S", "P"]}, {"name": "Fatmah, A.Md.Far", "status": "BLUD", "ruangan": "IGD", "codes": ["S", "P", "M", "M", "L", "L", "S", "P", "P", "S", "M", "L", "P", "S", "S", "M", "M", "L", "L", "S", "S", "P", "M", "M", "L", "L", "P", "S", "S", "S"]}, {"name": "Riza Vina,A.Md.Far", "status": "BLUD", "ruangan": "IGD", "codes": ["L", "L", "S", "P", "P", "S", "M", "M", "L", "L", "P", "P", "S", "S", "M", "L", "P", "S", "S", "S", "M", "M", "L", "L", "S", "S", "S", "P", "M", "M"]}, {"name": "Dewi Rachmasuari,A.Md.Far", "status": "BLUD", "ruangan": "IGD", "codes": ["M", "M", "L", "L", "S", "S", "P", "M", "M", "L", "L", "S", "M", "M", "L", "CT", "CT", "CT", "CT", "CT", "CT", "CT", "P", "S", "S", "P", "M", "M", "L", "L"]}, {"name": "Yulinda Christine, A.Md.Far", "status": "BLUD", "ruangan": "IGD", "codes": ["P", "S", "S", "S", "L", "P", "P", "S", "S", "M", "M", "L", "L", "P", "P", "S", "M", "M", "L", "L", "P", "S", "S", "M", "M", "L", "L", "S", "S", "P"]}, {"name": "Kurnia Della, A.Md.Farm", "status": "BLUD", "ruangan": "RANAP", "codes": ["P", "L", "S", "S", "P", "P", "L", "S", "S", "TS", "P", "P", "P", "L", "P", "S", "TS", "TS", "L", "P", "P", "TS", "L", "L", "P", "TS", "P", "P", "S", "L"]}, {"name": "Mayrani Permata Sari, S.Farm. Apt", "status": "PPPK", "ruangan": "RANAP", "codes": ["P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "P", "L", "P", "P"]}, {"name": "Apt. Akhmad Fahri R, S.Farm", "status": "THL", "ruangan": "RANAP", "codes": ["S", "P", "L", "S", "P", "P", "L", "P", "P", "P", "P", "S", "S", "L", "L", "S", "P", "S", "S", "P", "S", "L", "L", "S", "P", "P", "S", "S", "P", "L"]}, {"name": "Apt. Fariana Nur Santi, S.Farm", "status": "BLUD", "ruangan": "RANAP", "codes": ["S", "S", "P", "P", "P", "L", "L", "P", "P", "S", "TS", "S", "P", "L", "L", "P", "S", "P", "P", "P", "P", "L", "L", "P", "S", "P", "P", "S", "P", "L"]}, {"name": "Apt. Muhammad Fajar Atma Dinata, S.Farm", "status": "THL", "ruangan": "RANAP", "codes": ["P", "P", "L", "P", "S", "S", "P", "L", "L", "P", "S", "P", "P", "P", "P", "L", "P", "S", "S", "S", "P", "L", "P", "P", "P", "P", "L", "L", "S", "P"]}, {"name": "Apt.Monalyta Panjaitan, S.Farm", "status": "BLUD", "ruangan": "RANAP", "codes": ["P", "S", "L", "L", "S", "P", "P", "S", "S", "P", "L", "L", "S", "P", "P", "S", "P", "P", "L", "L", "S", "P", "S", "P", "S", "L", "P", "P", "P", "P"]}, {"name": "Rizka Arianie Rusli.S.Farm.Apt", "status": "PPPK", "ruangan": "RANAP", "codes": ["L", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P", "P", "P", "P", "L", "L", "P", "P"]}, {"name": "Edy Sudiyanto", "status": "PNS", "ruangan": "RANAP", "codes": ["TS", "S", "L", "L", "TS", "S", "P", "S", "S", "TS", "L", "L", "TS", "TS", "S", "S", "TS", "S", "L", "L", "TS", "S", "TS", "P", "S", "TS", "L", "TS", "S", "P"]}, {"name": "Jakpar", "status": "PPPK", "ruangan": "RANAP", "codes": ["L", "L", "S", "TS", "S", "TS", "TS", "P", "L", "L", "TS", "TS", "S", "S", "TS", "P", "L", "L", "S", "TS", "S", "TS", "P", "S", "L", "S", "TS", "S", "TS", "TS"]}, {"name": "Erwin", "status": "Transporter", "ruangan": "RANAP", "codes": ["S", "TS", "TS", "S", "L", "L", "S", "TS", "TS", "S", "S", "S", "L", "L", "P", "TS", "S", "TS", "TS", "S", "L", "L", "S", "TS", "TS", "P", "S", "P", "L", "S"]}, {"name": "Rahmawati,Amd.far", "status": "PPPK", "ruangan": "RANAP", "codes": ["P", "S", "L", "P", "TS", "P", "S", "S", "P", "L", "L", "CT", "CT", "CT", "CT", "CT", "CT", "CT", "CT", "CT", "P", "S", "TS", "TS", "P", "P", "L", "L", "P", "S"]}, {"name": "Nurfitria Dian Hanjaya, Amd. Far", "status": "PPPK-pw", "ruangan": "RANAP", "codes": ["S", "TS", "TS", "P", "P", "P", "L", "L", "P", "P", "P", "TS", "P", "L", "L", "S", "S", "S", "S", "P", "P", "L", "S", "S", "P", "P", "P", "P", "L", "L"]}, {"name": "Monica Happying", "status": "PPPK-pw", "ruangan": "RANAP", "codes": ["L", "L", "L", "L", "L", "L", "L", "L", "TS", "P", "P", "L", "L", "L", "S", "S", "P", "S", "TS", "S", "S", "L", "L", "L", "L", "P", "P", "L", "L", "L"]}, {"name": "Amelia Tri Untari,A. Md.Farm", "status": "PPPK", "ruangan": "RANAP", "codes": ["TS", "P", "P", "L", "L", "P", "P", "P", "S", "S", "TS", "L", "L", "S", "S", "TS", "P", "P", "P", "L", "L", "P", "TS", "S", "S", "P", "L", "P", "P", "S"]}, {"name": "Evi Kurniawati.A.Md.Far", "status": "PPPK", "ruangan": "RANAP", "codes": ["TS", "P", "P", "L", "L", "S", "S", "TS", "TS", "P", "P", "L", "L", "S", "S", "TS", "P", "P", "P", "L", "L", "P", "S", "P", "P", "S", "L", "S", "S", "TS"]}, {"name": "Hairun Nissa,A.Md.Far", "status": "PPPK", "ruangan": "RANAP", "codes": ["P", "S", "L", "L", "P", "S", "P", "P", "P", "S", "L", "P", "S", "P", "P", "L", "P", "P", "S", "L", "L", "P", "P", "S", "TS", "L", "TS", "S", "S", "P"]}, {"name": "Nurhasanah,A.Md.Farm", "status": "BLUD", "ruangan": "RANAP", "codes": ["P", "L", "P", "S", "P", "P", "S", "S", "L", "L", "S", "S", "P", "P", "P", "P", "L", "L", "P", "S", "TS", "S", "S", "TS", "L", "L", "S", "TS", "P", "P"]}, {"name": "Ulfah Musyarofah Indah Sari, A.Md.Far", "status": "PPPK", "ruangan": "RANAP", "codes": ["L", "L", "S", "S", "P", "TS", "P", "P", "L", "S", "S", "TS", "TS", "P", "P", "L", "L", "P", "S", "TS", "TS", "P", "P", "L", "L", "S", "S", "TS", "P", "P"]}, {"name": "Yuni Anisa Ningsih,Amd.Farm", "status": "PPPK-pw", "ruangan": "RANAP", "codes": ["L", "P", "S", "P", "S", "L", "P", "P", "P", "L", "L", "S", "S", "P", "P", "P", "S", "L", "L", "S", "S", "TS", "P", "P", "S", "L", "P", "S", "TS", "S"]}, {"name": "Yudha Setiawan,Amd.far", "status": "PPPK", "ruangan": "RANAP", "codes": ["S", "P", "L", "P", "S", "S", "TS", "P", "P", "L", "L", "P", "S", "S", "TS", "P", "S", "L", "L", "P", "S", "S", "P", "P", "L", "L", "P", "P", "TS", "P"]}, {"name": "Achmad Mustafa,Amd.far", "status": "PPPK", "ruangan": "RANAP", "codes": ["S", "S", "P", "TS", "S", "L", "P", "L", "S", "P", "S", "S", "P", "TS", "L", "L", "P", "S", "P", "P", "P", "P", "L", "P", "S", "S", "S", "L", "L", "TS"]}, {"name": "Apt. Badzlina Azyyati Maizan, S.Farm., M.Farm.Klin", "status": "BLUD", "ruangan": "RANAP", "codes": ["L", "L", "S", "P", "P", "P", "S", "S", "L", "L", "S", "P", "P", "S", "S", "P", "L", "S", "P", "S", "P", "S", "S", "L", "L", "S", "S", "P", "P", "S"]}, {"name": "Apt. Sayyidah Nur Fathimah, S.Farm", "status": "BLUD", "ruangan": "RANAP", "codes": ["P", "P", "S", "S", "L", "S", "S", "P", "S", "S", "P", "L", "L", "S", "S", "P", "S", "P", "P", "L", "L", "S", "P", "S", "P", "S", "P", "L", "S", "S"]}, {"name": "Apt.Chaerul Reza Mahendra, S.Farm", "status": "BLUD", "ruangan": "UPSS", "codes": ["P", "P", "L", "L", "CT", "CT", "CT", "CT", "CT", "P", "TS", "P", "P", "TS", "TS", "L", "P", "P", "P", "P", "TS", "TS", "L", "L", "P", "TS", "P", "P", "P", "P"]}, {"name": "Vindy Rofandi,Amd.far", "status": "PPPK", "ruangan": "UPSS", "codes": ["TS", "L", "TS", "P", "P", "TS", "P", "TS", "L", "L", "P", "P", "TS", "P", "P", "P", "L", "L", "TS", "TS", "TS", "TS", "P", "P", "L", "P", "TS", "TS", "P", "TS"]}, {"name": "Anita Rahim,Amd.far", "status": "PPPK", "ruangan": "UPSS", "codes": ["L", "TS", "P", "TS", "TS", "P", "TS", "L", "TS", "TS", "P", "TS", "P", "L", "L", "TS", "TS", "TS", "P", "L", "P", "P", "TS", "TS", "TS", "P", "L", "P", "TS", "P"]}]}</script>
+
+<script>
+/* ============================================================
+   KONFIGURASI KODE & WARNA
+   ============================================================ */
+var DEFAULT_LEGEND = {
+  P:   { label: 'Piket / Bertugas', color: 'var(--c-P)',   onDuty: true  },
+  TS:  { label: 'Tukar Shift',      color: 'var(--c-TS)',  onDuty: false },
+  S:   { label: 'Sakit',            color: 'var(--c-S)',   onDuty: false },
+  M:   { label: 'Kode M',           color: 'var(--c-M)',   onDuty: false },
+  L:   { label: 'Libur',            color: 'var(--c-L)',   onDuty: false },
+  CT:  { label: 'Cuti Tahunan',     color: 'var(--c-CT)',  onDuty: false },
+  CM:  { label: 'Cuti Melahirkan',  color: 'var(--c-CM)',  onDuty: false },
+  SKT: { label: 'Surat Ket. Sakit', color: 'var(--c-SKT)', onDuty: false }
+};
+
+var state = {
+  data: null,
+  legend: null,
+  sheetUrl: '',
+  selectedDate: null,
+  isDemo: true
+};
+
+/* ============================================================
+   PENYIMPANAN LOKAL
+   ============================================================ */
+function loadSettings(){
+  try{
+    var savedLegendRaw = localStorage.getItem('aps_legend');
+    var savedUrl = localStorage.getItem('aps_sheet_url') || '';
+    var legend = JSON.parse(JSON.stringify(DEFAULT_LEGEND));
+    if(savedLegendRaw){
+      var savedLegend = JSON.parse(savedLegendRaw);
+      Object.keys(savedLegend).forEach(function(k){
+        if(legend[k]) legend[k].label = savedLegend[k].label;
+      });
+    }
+    state.legend = legend;
+    state.sheetUrl = savedUrl;
+  }catch(e){
+    state.legend = JSON.parse(JSON.stringify(DEFAULT_LEGEND));
+    state.sheetUrl = '';
+  }
+}
+function saveSettings(url, legend){
+  localStorage.setItem('aps_sheet_url', url);
+  var slim = {};
+  Object.keys(legend).forEach(function(k){ slim[k] = { label: legend[k].label }; });
+  localStorage.setItem('aps_legend', JSON.stringify(slim));
+}
+
+/* ============================================================
+   AMBIL DATA
+   ============================================================ */
+function getDemoData(){
+  return JSON.parse(document.getElementById('demo-data').textContent);
+}
+
+function loadData(){
+  document.getElementById('demoBanner').style.display = 'none';
+  if(state.sheetUrl){
+    fetch(state.sheetUrl)
+      .then(function(r){ return r.json(); })
+      .then(function(json){
+        if(json.error || !json.dates || !json.employees){ throw new Error(json.error || 'Format data tidak sesuai'); }
+        state.data = json;
+        state.isDemo = false;
+        onDataReady();
+      })
+      .catch(function(err){
+        console.warn('Gagal mengambil data dari Google Sheets, pakai data contoh.', err);
+        state.data = getDemoData();
+        state.isDemo = true;
+        document.getElementById('demoBanner').style.display = 'flex';
+        onDataReady();
+      });
+  } else {
+    state.data = getDemoData();
+    state.isDemo = true;
+    document.getElementById('demoBanner').style.display = 'flex';
+    onDataReady();
+  }
+}
+
+function onDataReady(){
+  var dates = state.data.dates;
+  var todayStr = new Date().toISOString().slice(0,10);
+  state.selectedDate = dates.indexOf(todayStr) >= 0 ? todayStr : dates[dates.length-1];
+
+  var dateInput = document.getElementById('dateInput');
+  dateInput.min = dates[0];
+  dateInput.max = dates[dates.length-1];
+  dateInput.value = state.selectedDate;
+
+  var upd = document.getElementById('updatedInfo');
+  var stamp = state.data.updatedAt ? new Date(state.data.updatedAt).toLocaleString('id-ID') : '—';
+  upd.textContent = (state.isDemo ? 'Data contoh' : 'Data live dari Google Sheets') + ' · terakhir dimuat ' + stamp;
+
+  populateFilters();
+  renderRekap();
+  renderJadwal();
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function initials(name){
+  var parts = name.replace(/,.*/, '').trim().split(/\s+/);
+  var s = (parts[0]||'')[0] + (parts[1] ? parts[1][0] : '');
+  return s.toUpperCase();
+}
+function fmtDateLabel(dstr){
+  var d = new Date(dstr + 'T00:00:00');
+  return d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+function fmtDateShort(dstr){
+  var d = new Date(dstr + 'T00:00:00');
+  return d.toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short' });
+}
+function codeMeta(code){
+  return state.legend[code] || { label: code || '—', color:'var(--ink-soft)', onDuty:false };
+}
+
+/* ============================================================
+   REKAP TAB
+   ============================================================ */
+function renderRekap(){
+  var dates = state.data.dates;
+  var idx = dates.indexOf(state.selectedDate);
+  var found = idx >= 0;
+
+  var byRoom = {};
+  var codeCounts = {};
+  var totalOnDuty = 0, totalOff = 0;
+
+  state.data.employees.forEach(function(emp){
+    var code = found ? (emp.codes[idx] || '') : '';
+    var room = emp.ruangan || 'Belum diisi';
+    if(!byRoom[room]) byRoom[room] = { onDuty:[], offByCode:{} };
+
+    if(code){
+      codeCounts[code] = (codeCounts[code]||0) + 1;
+      var meta = codeMeta(code);
+      if(meta.onDuty){
+        byRoom[room].onDuty.push(emp);
+        totalOnDuty++;
+      } else {
+        byRoom[room].offByCode[code] = (byRoom[room].offByCode[code]||0) + 1;
+        totalOff++;
+      }
+    }
+  });
+
+  // stat cards
+  var statRow = document.getElementById('statRow');
+  var totalStaff = state.data.employees.length;
+  statRow.innerHTML = [
+    ['<span class="mono">'+ totalStaff +'</span>', 'Total staf terdaftar'],
+    ['<span class="mono">'+ totalOnDuty +'</span>', 'Bertugas hari ini'],
+    ['<span class="mono">'+ totalOff +'</span>', 'Libur / izin / cuti / sakit'],
+    ['<span class="mono">'+ Object.keys(byRoom).length +'</span>', 'Ruangan aktif']
+  ].map(function(s){
+    return '<div class="stat-card"><div class="num">'+s[0]+'</div><div class="lbl">'+s[1]+'</div></div>';
+  }).join('');
+
+  // chip row (breakdown per code)
+  var chipRow = document.getElementById('chipRow');
+  if(!found){
+    chipRow.innerHTML = '<div class="chip">Tanggal ini di luar rentang data jadwal yang tersedia (' + fmtDateShort(dates[0]) + ' – ' + fmtDateShort(dates[dates.length-1]) + ')</div>';
+  } else {
+    chipRow.innerHTML = Object.keys(state.legend).map(function(code){
+      var n = codeCounts[code] || 0;
+      var meta = codeMeta(code);
+      return '<div class="chip"><span class="dot" style="background:'+meta.color+'"></span>'+meta.label+' <b>'+n+'</b></div>';
+    }).join('');
+  }
+
+  // room cards
+  var roomGrid = document.getElementById('roomGrid');
+  var rooms = Object.keys(byRoom).sort();
+  if(rooms.length === 0){
+    roomGrid.innerHTML = '<div class="room-card"><div class="room-body empty">Belum ada data ruangan untuk tanggal ini.</div></div>';
+    return;
+  }
+  roomGrid.innerHTML = rooms.map(function(room){
+    var r = byRoom[room];
+    var staffHtml = r.onDuty.length
+      ? r.onDuty.map(function(emp){
+          return '<div class="staff-row"><div class="avatar">'+initials(emp.name)+'</div>' +
+                 '<div><div class="staff-name">'+emp.name+'</div><div class="staff-status">'+(emp.status||'')+'</div></div></div>';
+        }).join('')
+      : '<div class="empty">Tidak ada staf bertugas.</div>';
+
+    var offHtml = Object.keys(r.offByCode).map(function(code){
+      var meta = codeMeta(code);
+      return '<span class="off-pill" style="background:'+meta.color+'">'+meta.label+' · '+r.offByCode[code]+'</span>';
+    }).join('');
+
+    return '<div class="room-card">' +
+      '<div class="room-tag"><span>'+room+'</span><span class="count">'+r.onDuty.length+' bertugas</span></div>' +
+      '<div class="room-body">' +
+        '<div class="staff-list">'+staffHtml+'</div>' +
+        (offHtml ? '<div class="off-tally">'+offHtml+'</div>' : '') +
+      '</div></div>';
+  }).join('');
+
+  document.querySelector('.eyebrow').nextElementSibling; // no-op safeguard
+  var head = document.querySelector('#tab-rekap .rekap-head h2');
+  head.textContent = 'Rekap per Ruangan';
+  document.querySelector('#tab-rekap .eyebrow').textContent = found ? fmtDateLabel(state.selectedDate) : 'Tanggal tidak ditemukan di jadwal';
+}
+
+/* ============================================================
+   JADWAL TAB
+   ============================================================ */
+function populateFilters(){
+  var rooms = Array.from(new Set(state.data.employees.map(function(e){ return e.ruangan; }).filter(Boolean))).sort();
+  var statuses = Array.from(new Set(state.data.employees.map(function(e){ return e.status; }).filter(Boolean))).sort();
+  var rSel = document.getElementById('filterRuangan');
+  var sSel = document.getElementById('filterStatus');
+  rSel.innerHTML = '<option value="">Semua ruangan</option>' + rooms.map(function(r){ return '<option value="'+r+'">'+r+'</option>'; }).join('');
+  sSel.innerHTML = '<option value="">Semua status kepegawaian</option>' + statuses.map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join('');
+}
+
+function renderJadwal(){
+  var dates = state.data.dates;
+  var headRow = document.getElementById('tableHeadRow');
+  headRow.innerHTML = '<th>Nama</th><th>Ruangan</th>' + dates.map(function(d){
+    return '<th>'+fmtDateShort(d).replace(', ', '<br>')+'</th>';
+  }).join('');
+
+  var q = document.getElementById('searchName').value.trim().toLowerCase();
+  var fRoom = document.getElementById('filterRuangan').value;
+  var fStatus = document.getElementById('filterStatus').value;
+
+  var rows = state.data.employees.filter(function(e){
+    if(q && e.name.toLowerCase().indexOf(q) === -1) return false;
+    if(fRoom && e.ruangan !== fRoom) return false;
+    if(fStatus && e.status !== fStatus) return false;
+    return true;
+  });
+
+  var body = document.getElementById('tableBody');
+  if(rows.length === 0){
+    body.innerHTML = '<tr><td colspan="'+(dates.length+2)+'" style="text-align:center;color:var(--ink-soft);padding:24px">Tidak ada staf yang cocok dengan pencarian/filter.</td></tr>';
+    return;
+  }
+  body.innerHTML = rows.map(function(e){
+    var cells = e.codes.map(function(code){
+      if(!code) return '<td class="code-empty">–</td>';
+      var meta = codeMeta(code);
+      return '<td><span class="code-cell" style="background:'+meta.color+'" title="'+meta.label+'">'+code+'</span></td>';
+    }).join('');
+    return '<tr><td>'+e.name+'</td><td>'+(e.ruangan||'')+'</td>'+cells+'</tr>';
+  }).join('');
+}
+
+/* ============================================================
+   SETTINGS MODAL
+   ============================================================ */
+function renderLegendEditor(){
+  var container = document.getElementById('legendEditor');
+  container.innerHTML = Object.keys(state.legend).map(function(code){
+    var meta = state.legend[code];
+    return '<div class="legend-row"><span class="dot" style="background:'+meta.color+'"></span>' +
+      '<span class="code-name">'+code+'</span>' +
+      '<input type="text" data-code="'+code+'" value="'+meta.label+'"></div>';
+  }).join('');
+}
+
+function openModal(){
+  document.getElementById('sheetUrlInput').value = state.sheetUrl;
+  renderLegendEditor();
+  document.getElementById('modalBg').classList.add('open');
+}
+function closeModal(){ document.getElementById('modalBg').classList.remove('open'); }
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    var tab = btn.dataset.tab;
+    document.getElementById('tab-rekap').style.display = tab === 'rekap' ? 'block' : 'none';
+    document.getElementById('tab-jadwal').style.display = tab === 'jadwal' ? 'block' : 'none';
+  });
+});
+
+document.getElementById('dateInput').addEventListener('change', function(e){
+  state.selectedDate = e.target.value;
+  renderRekap();
+});
+document.getElementById('prevDay').addEventListener('click', function(){
+  var d = new Date(state.selectedDate + 'T00:00:00');
+  d.setDate(d.getDate()-1);
+  state.selectedDate = d.toISOString().slice(0,10);
+  document.getElementById('dateInput').value = state.selectedDate;
+  renderRekap();
+});
+document.getElementById('nextDay').addEventListener('click', function(){
+  var d = new Date(state.selectedDate + 'T00:00:00');
+  d.setDate(d.getDate()+1);
+  state.selectedDate = d.toISOString().slice(0,10);
+  document.getElementById('dateInput').value = state.selectedDate;
+  renderRekap();
+});
+
+document.getElementById('searchName').addEventListener('input', renderJadwal);
+document.getElementById('filterRuangan').addEventListener('change', renderJadwal);
+document.getElementById('filterStatus').addEventListener('change', renderJadwal);
+
+document.getElementById('settingsBtn').addEventListener('click', openModal);
+document.getElementById('openSettingsFromBanner').addEventListener('click', openModal);
+document.getElementById('closeModal').addEventListener('click', closeModal);
+document.getElementById('modalBg').addEventListener('click', function(e){ if(e.target === this) closeModal(); });
+
+document.getElementById('refreshBtn').addEventListener('click', loadData);
+
+document.getElementById('saveSettings').addEventListener('click', function(){
+  var url = document.getElementById('sheetUrlInput').value.trim();
+  document.querySelectorAll('#legendEditor input').forEach(function(inp){
+    state.legend[inp.dataset.code].label = inp.value.trim() || inp.dataset.code;
+  });
+  state.sheetUrl = url;
+  saveSettings(url, state.legend);
+  closeModal();
+  loadData();
+});
+
+document.getElementById('resetDemo').addEventListener('click', function(){
+  localStorage.removeItem('aps_sheet_url');
+  state.sheetUrl = '';
+  document.getElementById('sheetUrlInput').value = '';
+  closeModal();
+  loadData();
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+loadSettings();
+loadData();
+</script>
+</body>
+</html>
