@@ -108,7 +108,10 @@
   .room-tag .count{background:rgba(255,255,255,.18);border-radius:999px;padding:2px 9px;font-size:11px}
   .room-body{padding:14px 16px 16px}
   .room-body .empty{color:var(--ink-soft);font-size:13px;font-style:italic;padding:6px 0}
-  .staff-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+  .shift-group{margin-bottom:12px}
+  .shift-group:last-child{margin-bottom:12px}
+  .shift-head{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin-bottom:7px}
+  .staff-list{display:flex;flex-direction:column;gap:8px;margin-bottom:0}
   .staff-row{display:flex;align-items:center;gap:10px}
   .avatar{
     width:28px;height:28px;border-radius:50%;background:var(--apotek);color:#fff;flex:none;
@@ -260,12 +263,12 @@
     </div>
     <div class="modal-body">
       <label>URL Web App Google Sheets</label>
-      <input type="url" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/AKfycbyr9QirgNaDgHKDFBtmexVXOgdEiuuU83aPBF4_f2LJ6mkfrziuwwi4CKLGwvW924ZrAg/exec">
+      <input type="url" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/…/exec">
       <p class="help-text">Dapatkan URL ini dari Google Apps Script (Deploy → New deployment → Web app). Panduan lengkap ada di file PANDUAN_SETUP.md yang disertakan.</p>
 
       <label>Label Kode Jadwal</label>
       <div id="legendEditor"></div>
-      <p class="help-text">Sesuaikan label tiap kode dengan istilah yang dipakai di tempat Anda. Kode <b>P</b> dianggap "bertugas" dan dipakai untuk mengisi rekap per ruangan; kode lain dihitung sebagai tidak bertugas.</p>
+      <p class="help-text">Sesuaikan label tiap kode dengan istilah yang dipakai di tempat Anda. Kode <b>P, TS, S, M</b> adalah empat shift kerja (Pagi/Middle/Sore/Malam) dan digabung jadi total "Piket / Bertugas"; kode <b>L, CT, CM, SKT</b> dihitung sebagai tidak bertugas (Libur/Cuti Tahunan/Cuti Melahirkan/Sakit).</p>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" id="resetDemo">Pakai data contoh</button>
@@ -280,16 +283,20 @@
 /* ============================================================
    KONFIGURASI KODE & WARNA
    ============================================================ */
+/* P, TS, S, M = empat shift kerja (Pagi/Middle/Sore/Malam) — semuanya dihitung
+   "bertugas". L/CT/CM/SKT = kategori tidak bertugas. */
 var DEFAULT_LEGEND = {
-  P:   { label: 'Piket / Bertugas', color: 'var(--c-P)',   onDuty: true  },
-  TS:  { label: 'Tukar Shift',      color: 'var(--c-TS)',  onDuty: false },
-  S:   { label: 'Sakit',            color: 'var(--c-S)',   onDuty: false },
-  M:   { label: 'Kode M',           color: 'var(--c-M)',   onDuty: false },
-  L:   { label: 'Libur',            color: 'var(--c-L)',   onDuty: false },
-  CT:  { label: 'Cuti Tahunan',     color: 'var(--c-CT)',  onDuty: false },
-  CM:  { label: 'Cuti Melahirkan',  color: 'var(--c-CM)',  onDuty: false },
-  SKT: { label: 'Surat Ket. Sakit', color: 'var(--c-SKT)', onDuty: false }
+  P:   { label: 'Pagi',            color: 'var(--c-P)',   shift: true  },
+  TS:  { label: 'Middle',          color: 'var(--c-TS)',  shift: true  },
+  S:   { label: 'Sore',            color: 'var(--c-S)',   shift: true  },
+  M:   { label: 'Malam',           color: 'var(--c-M)',   shift: true  },
+  L:   { label: 'Libur',           color: 'var(--c-L)',   shift: false },
+  CT:  { label: 'Cuti Tahunan',    color: 'var(--c-CT)',  shift: false },
+  CM:  { label: 'Cuti Melahirkan', color: 'var(--c-CM)',  shift: false },
+  SKT: { label: 'Sakit',           color: 'var(--c-SKT)', shift: false }
 };
+var BERTUGAS_LABEL = 'Piket / Bertugas';
+var BERTUGAS_COLOR = 'var(--apotek)';
 
 var state = {
   data: null,
@@ -396,8 +403,9 @@ function fmtDateShort(dstr){
   return d.toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short' });
 }
 function codeMeta(code){
-  return state.legend[code] || { label: code || '—', color:'var(--ink-soft)', onDuty:false };
+  return state.legend[code] || { label: code || '—', color:'var(--ink-soft)', shift:false };
 }
+var SHIFT_CODES = Object.keys(DEFAULT_LEGEND).filter(function(c){ return DEFAULT_LEGEND[c].shift; });
 
 /* ============================================================
    REKAP TAB
@@ -414,13 +422,17 @@ function renderRekap(){
   state.data.employees.forEach(function(emp){
     var code = found ? (emp.codes[idx] || '') : '';
     var room = emp.ruangan || 'Belum diisi';
-    if(!byRoom[room]) byRoom[room] = { onDuty:[], offByCode:{} };
+    if(!byRoom[room]){
+      byRoom[room] = { shifts:{}, offByCode:{}, onDutyCount:0 };
+      SHIFT_CODES.forEach(function(c){ byRoom[room].shifts[c] = []; });
+    }
 
     if(code){
       codeCounts[code] = (codeCounts[code]||0) + 1;
       var meta = codeMeta(code);
-      if(meta.onDuty){
-        byRoom[room].onDuty.push(emp);
+      if(meta.shift){
+        byRoom[room].shifts[code].push(emp);
+        byRoom[room].onDutyCount++;
         totalOnDuty++;
       } else {
         byRoom[room].offByCode[code] = (byRoom[room].offByCode[code]||0) + 1;
@@ -434,26 +446,31 @@ function renderRekap(){
   var totalStaff = state.data.employees.length;
   statRow.innerHTML = [
     ['<span class="mono">'+ totalStaff +'</span>', 'Total staf terdaftar'],
-    ['<span class="mono">'+ totalOnDuty +'</span>', 'Bertugas hari ini'],
-    ['<span class="mono">'+ totalOff +'</span>', 'Libur / izin / cuti / sakit'],
+    ['<span class="mono">'+ totalOnDuty +'</span>', 'Piket / bertugas hari ini'],
+    ['<span class="mono">'+ totalOff +'</span>', 'Libur / cuti / sakit'],
     ['<span class="mono">'+ Object.keys(byRoom).length +'</span>', 'Ruangan aktif']
   ].map(function(s){
     return '<div class="stat-card"><div class="num">'+s[0]+'</div><div class="lbl">'+s[1]+'</div></div>';
   }).join('');
 
-  // chip row (breakdown per code)
+  // chip row: gabungkan semua kode shift (P/TS/S/M) jadi satu chip "Piket / Bertugas",
+  // lalu satu chip per kode tidak-bertugas (Sakit, Libur, Cuti Tahunan, Cuti Melahirkan)
   var chipRow = document.getElementById('chipRow');
   if(!found){
     chipRow.innerHTML = '<div class="chip">Tanggal ini di luar rentang data jadwal yang tersedia (' + fmtDateShort(dates[0]) + ' – ' + fmtDateShort(dates[dates.length-1]) + ')</div>';
   } else {
-    chipRow.innerHTML = Object.keys(state.legend).map(function(code){
-      var n = codeCounts[code] || 0;
+    var chips = [];
+    chips.push('<div class="chip"><span class="dot" style="background:'+BERTUGAS_COLOR+'"></span>'+BERTUGAS_LABEL+' <b>'+totalOnDuty+'</b></div>');
+    Object.keys(state.legend).forEach(function(code){
       var meta = codeMeta(code);
-      return '<div class="chip"><span class="dot" style="background:'+meta.color+'"></span>'+meta.label+' <b>'+n+'</b></div>';
-    }).join('');
+      if(meta.shift) return; // sudah masuk chip Piket/Bertugas di atas
+      var n = codeCounts[code] || 0;
+      chips.push('<div class="chip"><span class="dot" style="background:'+meta.color+'"></span>'+meta.label+' <b>'+n+'</b></div>');
+    });
+    chipRow.innerHTML = chips.join('');
   }
 
-  // room cards
+  // room cards — staf bertugas dikelompokkan per shift (Pagi/Middle/Sore/Malam)
   var roomGrid = document.getElementById('roomGrid');
   var rooms = Object.keys(byRoom).sort();
   if(rooms.length === 0){
@@ -462,12 +479,21 @@ function renderRekap(){
   }
   roomGrid.innerHTML = rooms.map(function(room){
     var r = byRoom[room];
-    var staffHtml = r.onDuty.length
-      ? r.onDuty.map(function(emp){
-          return '<div class="staff-row"><div class="avatar">'+initials(emp.name)+'</div>' +
-                 '<div><div class="staff-name">'+emp.name+'</div><div class="staff-status">'+(emp.status||'')+'</div></div></div>';
-        }).join('')
-      : '<div class="empty">Tidak ada staf bertugas.</div>';
+
+    var shiftGroups = SHIFT_CODES.map(function(code){
+      var list = r.shifts[code];
+      if(!list.length) return '';
+      var meta = codeMeta(code);
+      var rows = list.map(function(emp){
+        return '<div class="staff-row"><div class="avatar" style="background:'+meta.color+'">'+initials(emp.name)+'</div>' +
+               '<div><div class="staff-name">'+emp.name+'</div><div class="staff-status">'+(emp.status||'')+'</div></div></div>';
+      }).join('');
+      return '<div class="shift-group">' +
+        '<div class="shift-head"><span class="dot" style="background:'+meta.color+'"></span>'+meta.label+' · '+list.length+'</div>' +
+        '<div class="staff-list">'+rows+'</div></div>';
+    }).join('');
+
+    var staffHtml = r.onDutyCount ? shiftGroups : '<div class="empty">Tidak ada staf bertugas.</div>';
 
     var offHtml = Object.keys(r.offByCode).map(function(code){
       var meta = codeMeta(code);
@@ -475,16 +501,13 @@ function renderRekap(){
     }).join('');
 
     return '<div class="room-card">' +
-      '<div class="room-tag"><span>'+room+'</span><span class="count">'+r.onDuty.length+' bertugas</span></div>' +
+      '<div class="room-tag"><span>'+room+'</span><span class="count">'+r.onDutyCount+' bertugas</span></div>' +
       '<div class="room-body">' +
-        '<div class="staff-list">'+staffHtml+'</div>' +
+        staffHtml +
         (offHtml ? '<div class="off-tally">'+offHtml+'</div>' : '') +
       '</div></div>';
   }).join('');
 
-  document.querySelector('.eyebrow').nextElementSibling; // no-op safeguard
-  var head = document.querySelector('#tab-rekap .rekap-head h2');
-  head.textContent = 'Rekap per Ruangan';
   document.querySelector('#tab-rekap .eyebrow').textContent = found ? fmtDateLabel(state.selectedDate) : 'Tanggal tidak ditemukan di jadwal';
 }
 
