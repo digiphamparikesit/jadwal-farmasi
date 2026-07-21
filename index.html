@@ -139,16 +139,11 @@
   .shift-group:last-child{margin-bottom:12px}
   .shift-head{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin-bottom:7px}
   .staff-list{display:flex;flex-direction:column;gap:8px;margin-bottom:0}
-  .staff-scroll{position:relative;overflow:hidden;max-height:400px;transition:max-height .2s ease}
-  .staff-scroll.collapsed::after{
-    content:'';position:absolute;left:0;right:0;bottom:0;height:36px;
-    background:linear-gradient(to bottom, rgba(255,255,255,0), var(--card));pointer-events:none;
-  }
-  .show-more-btn{
-    display:block;width:100%;text-align:center;background:none;border:none;cursor:pointer;
-    font-size:11.5px;font-weight:600;color:var(--apotek);padding:8px 0 2px;font-family:'IBM Plex Sans',sans-serif;
-  }
-  .show-more-btn:hover{text-decoration:underline}
+  .room-tag{cursor:pointer;user-select:none}
+  .room-tag .chevron{display:inline-block;margin-left:8px;font-size:11px;transition:transform .2s ease}
+  .room-card.open .room-tag .chevron{transform:rotate(180deg)}
+  .room-body{display:none}
+  .room-card.open .room-body{display:block}
   .staff-row{display:flex;align-items:center;gap:10px}
   .avatar{
     width:28px;height:28px;border-radius:50%;background:var(--apotek);color:#fff;flex:none;
@@ -368,8 +363,9 @@ var state = {
 function loadSettings(){
   try{
     localStorage.removeItem('aps_legend');
+    localStorage.removeItem('aps_sheet_url'); // buang cache URL lama (versi sebelum perbaikan)
     var savedLegendRaw = localStorage.getItem('aps_legend_v2');
-    var savedUrl = localStorage.getItem('aps_sheet_url');
+    var savedUrl = localStorage.getItem('aps_sheet_url_v2');
     var legend = JSON.parse(JSON.stringify(DEFAULT_LEGEND));
     if(savedLegendRaw){
       var savedLegend = JSON.parse(savedLegendRaw);
@@ -386,9 +382,9 @@ function loadSettings(){
 }
 function saveSettings(url, legend){
   if(url){
-    localStorage.setItem('aps_sheet_url', url);
+    localStorage.setItem('aps_sheet_url_v2', url);
   } else {
-    localStorage.removeItem('aps_sheet_url');
+    localStorage.removeItem('aps_sheet_url_v2');
   }
   var slim = {};
   Object.keys(legend).forEach(function(k){ slim[k] = { label: legend[k].label }; });
@@ -552,8 +548,6 @@ function renderRekap(){
     }).join('');
 
     var staffHtml = r.onDutyCount ? shiftGroups : '<div class="empty">Tidak ada staf bertugas.</div>';
-    var needsCollapse = r.onDutyCount > 10;
-    var roomIdSafe = 'room' + rooms.indexOf(room);
 
     var offHtml = Object.keys(r.offByCode).map(function(code){
       var meta = codeMeta(code);
@@ -561,10 +555,9 @@ function renderRekap(){
     }).join('');
 
     return '<div class="room-card">' +
-      '<div class="room-tag"><span>'+room+'</span><span class="count">'+r.onDutyCount+' bertugas</span></div>' +
+      '<div class="room-tag"><span>'+room+' <span class="chevron">▾</span></span><span class="count">'+r.onDutyCount+' bertugas</span></div>' +
       '<div class="room-body">' +
-        '<div class="staff-scroll' + (needsCollapse ? ' collapsed' : '') + '" id="'+roomIdSafe+'">' + staffHtml + '</div>' +
-        (needsCollapse ? '<button class="show-more-btn" data-target="'+roomIdSafe+'">Tampilkan semua ('+r.onDutyCount+') ▾</button>' : '') +
+        staffHtml +
         (offHtml ? '<div class="off-tally">'+offHtml+'</div>' : '') +
       '</div></div>';
   }).join('');
@@ -688,12 +681,11 @@ document.addEventListener('click', function(e){
 });
 
 document.getElementById('roomGrid').addEventListener('click', function(e){
-  var btn = e.target.closest('.show-more-btn');
-  if(!btn) return;
-  var target = document.getElementById(btn.dataset.target);
-  if(!target) return;
-  var expanded = target.classList.toggle('collapsed') === false;
-  btn.textContent = expanded ? btn.textContent.replace('▾','▴').replace('Tampilkan semua', 'Sembunyikan') : btn.textContent.replace('▴','▾').replace('Sembunyikan', 'Tampilkan semua');
+  var tag = e.target.closest('.room-tag');
+  if(!tag) return;
+  var card = tag.closest('.room-card');
+  if(!card) return;
+  card.classList.toggle('open');
 });
 
 document.getElementById('refreshBtn').addEventListener('click', loadData);
@@ -710,7 +702,7 @@ document.getElementById('saveSettings').addEventListener('click', function(){
 });
 
 document.getElementById('resetDemo').addEventListener('click', function(){
-  localStorage.removeItem('aps_sheet_url');
+  localStorage.removeItem('aps_sheet_url_v2');
   state.sheetUrl = '';
   document.getElementById('sheetUrlInput').value = '';
   closeModal();
