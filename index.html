@@ -139,6 +139,16 @@
   .shift-group:last-child{margin-bottom:12px}
   .shift-head{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin-bottom:7px}
   .staff-list{display:flex;flex-direction:column;gap:8px;margin-bottom:0}
+  .staff-scroll{position:relative;overflow:hidden;max-height:400px;transition:max-height .2s ease}
+  .staff-scroll.collapsed::after{
+    content:'';position:absolute;left:0;right:0;bottom:0;height:36px;
+    background:linear-gradient(to bottom, rgba(255,255,255,0), var(--card));pointer-events:none;
+  }
+  .show-more-btn{
+    display:block;width:100%;text-align:center;background:none;border:none;cursor:pointer;
+    font-size:11.5px;font-weight:600;color:var(--apotek);padding:8px 0 2px;font-family:'IBM Plex Sans',sans-serif;
+  }
+  .show-more-btn:hover{text-decoration:underline}
   .staff-row{display:flex;align-items:center;gap:10px}
   .avatar{
     width:28px;height:28px;border-radius:50%;background:var(--apotek);color:#fff;flex:none;
@@ -542,6 +552,8 @@ function renderRekap(){
     }).join('');
 
     var staffHtml = r.onDutyCount ? shiftGroups : '<div class="empty">Tidak ada staf bertugas.</div>';
+    var needsCollapse = r.onDutyCount > 10;
+    var roomIdSafe = 'room' + rooms.indexOf(room);
 
     var offHtml = Object.keys(r.offByCode).map(function(code){
       var meta = codeMeta(code);
@@ -551,7 +563,8 @@ function renderRekap(){
     return '<div class="room-card">' +
       '<div class="room-tag"><span>'+room+'</span><span class="count">'+r.onDutyCount+' bertugas</span></div>' +
       '<div class="room-body">' +
-        staffHtml +
+        '<div class="staff-scroll' + (needsCollapse ? ' collapsed' : '') + '" id="'+roomIdSafe+'">' + staffHtml + '</div>' +
+        (needsCollapse ? '<button class="show-more-btn" data-target="'+roomIdSafe+'">Tampilkan semua ('+r.onDutyCount+') ▾</button>' : '') +
         (offHtml ? '<div class="off-tally">'+offHtml+'</div>' : '') +
       '</div></div>';
   }).join('');
@@ -672,6 +685,15 @@ document.getElementById('formMenuBtn').addEventListener('click', function(e){
 document.addEventListener('click', function(e){
   var wrap = document.getElementById('formMenuWrap');
   if(!wrap.contains(e.target)) wrap.classList.remove('open');
+});
+
+document.getElementById('roomGrid').addEventListener('click', function(e){
+  var btn = e.target.closest('.show-more-btn');
+  if(!btn) return;
+  var target = document.getElementById(btn.dataset.target);
+  if(!target) return;
+  var expanded = target.classList.toggle('collapsed') === false;
+  btn.textContent = expanded ? btn.textContent.replace('▾','▴').replace('Tampilkan semua', 'Sembunyikan') : btn.textContent.replace('▴','▾').replace('Sembunyikan', 'Tampilkan semua');
 });
 
 document.getElementById('refreshBtn').addEventListener('click', loadData);
